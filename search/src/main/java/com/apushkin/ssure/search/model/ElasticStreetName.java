@@ -1,4 +1,4 @@
-package com.apushkin.ssure.csv.model;
+package com.apushkin.ssure.search.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
