@@ -18,6 +18,13 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Search for terms in Elasticsearch instance.
+ * This version of the service is compatible and was designed for Elasticsearch 8.2.3
+ * */
+
+//TODO - add service version compatible with AWS Elasticsearch (7.x.?) and use @ConditionalOnSmth
+//TODO - use properties to determine where the app run: on-premises using Docker or in AWS
 @Service
 public class SearchSuggestionService {
     private static final Logger logger = LoggerFactory.getLogger(SearchSuggestionService.class);
@@ -27,13 +34,34 @@ public class SearchSuggestionService {
         this.client = client;
     }
 
-    public void searchWithSuggestion(String searchTerm) {
+    public void searchWithSuggestion(String searchTerm) throws IOException {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchQuery("name", searchTerm));
         SuggestionBuilder<TermSuggestionBuilder> suggestionBuilder = new TermSuggestionBuilder("name")
                 .text(searchTerm);
         SuggestBuilder suggestion = new SuggestBuilder().addSuggestion("term-suggester", suggestionBuilder);
-//        SearchRequestBuilder requestBuilder = client.
+        SearchResponse<ElasticStreetName> response = client.search(s -> s
+                .index("streets")
+                .query(q -> q
+                        .match(t -> t
+                                .field("name")
+                                .query(searchTerm)
+                        )
+                ).suggest(builder -> builder.suggesters().build()), ElasticStreetName.class);
+
+        /*
+        * client.search(searchRequestBuilder -> searchRequestBuilder
+        .suggest(suggestBuilder -> suggestBuilder
+                .text("some title I want to search")
+                .suggesters("phrase_suggester", fieldSuggesterBuilder -> fieldSuggesterBuilder
+                        .phrase(phraseBuilder -> phraseBuilder.field("title.shingle")
+                                .maxErrors(2d)
+                                .size(5)
+                                .confidence(0.0)
+                                .directGenerator(directGeneratorBuilder -> directGeneratorBuilder
+                                        .field("title.shingle")
+                                        .maxEdits(2))))),
+        YourEntity.class);*/
     }
 
     public void searchInsideElastic(String searchTerm) throws IOException {
