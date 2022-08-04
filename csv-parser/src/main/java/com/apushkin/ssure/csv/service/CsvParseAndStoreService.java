@@ -1,7 +1,7 @@
 package com.apushkin.ssure.csv.service;
 
-import com.apushkin.ssure.csv.model.ElasticStreetName;
-import com.apushkin.ssure.csv.model.StreetName;
+import com.apushkin.ssure.csv.model.ElasticStoreAddress;
+import com.apushkin.ssure.csv.model.StoreAddress;
 import com.apushkin.ssure.csv.repository.ElasticsearchIngestRepository;
 import com.opencsv.bean.CsvToBeanBuilder;
 import org.slf4j.Logger;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -28,9 +29,9 @@ public class CsvParseAndStoreService {
     @Value("${store.to.elastic}")
     private boolean needStorage;
 
-    private List<String> parsedNames;
+    private final List<StoreAddress> parsedAddresses = new ArrayList<>();
 
-    private ElasticsearchIngestRepository repository;
+    private final ElasticsearchIngestRepository repository;
 
     public CsvParseAndStoreService(ElasticsearchIngestRepository repository) {
         this.repository = repository;
@@ -38,12 +39,12 @@ public class CsvParseAndStoreService {
 
     public void parseCsv() throws IOException {
         LOGGER.info(String.format("Found csv file: %s", filename));
-        List<StreetName> streetNames = new CsvToBeanBuilder(new FileReader(filename))
-                .withType(StreetName.class).build().parse();
-        LOGGER.info(String.format("Parsed %d lines", streetNames.size()));
+        List<StoreAddress> addressList = new CsvToBeanBuilder(new FileReader(filename))
+                .withType(StoreAddress.class).build().parse();
+        LOGGER.info(String.format("Parsed %d lines", addressList.size()));
 
-        this.parsedNames = streetNames.stream().map(StreetName::getName).collect(Collectors.toList());
-        streetNames.clear();
+        parsedAddresses.addAll(addressList);
+        addressList.clear();
 
         if (needStorage) {
             storeToElastic();
@@ -51,17 +52,16 @@ public class CsvParseAndStoreService {
     }
 
     private void storeToElastic() {
-        //Store street names in ElasticSearch
-        LOGGER.info("Storing {} street names to ElasticSearch", parsedNames.size());
-        List<ElasticStreetName> elasticStreetNames = parsedNames
+        LOGGER.info("Saving {} store addresses to ElasticSearch", parsedAddresses.size());
+        List<ElasticStoreAddress> elasticStoreAddresses = parsedAddresses
                 .stream()
-                .map(ElasticStreetName::new)
+                .map(parsedAddress -> new ElasticStoreAddress(parsedAddress.getCity(), parsedAddress.getAddressLine()))
                 .collect(Collectors.toList());
 
-        repository.saveAll(elasticStreetNames);
+        repository.saveAll(elasticStoreAddresses);
 
-        Iterable<ElasticStreetName> all = repository.findAll();
+        Iterable<ElasticStoreAddress> all = repository.findAll();
         long count = StreamSupport.stream(all.spliterator(), false).count();
-        LOGGER.info("Stored {} street names to ElasticSearch", count);
+        LOGGER.info("Stored {} store addresses to ElasticSearch", count);
     }
 }

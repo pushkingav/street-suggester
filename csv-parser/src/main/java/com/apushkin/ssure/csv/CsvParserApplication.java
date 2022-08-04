@@ -1,7 +1,6 @@
 package com.apushkin.ssure.csv;
 
 import com.apushkin.ssure.csv.service.CsvParseAndStoreService;
-import com.opencsv.exceptions.CsvValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -25,7 +24,7 @@ public class CsvParserApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws CsvValidationException, IOException {
+    public void run(String... args) throws IOException {
         LOGGER.info("Startup of CSV parser");
         csvParseAndStoreService.parseCsv();
     }
