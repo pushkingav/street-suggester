@@ -5,7 +5,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 
 import java.util.Objects;
 
-@Document(indexName = "stores")
+@Document(indexName = "addresses")
 public class ElasticStoreAddress {
     @Id
     private String id;

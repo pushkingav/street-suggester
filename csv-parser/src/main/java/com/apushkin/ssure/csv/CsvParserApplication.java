@@ -27,5 +27,6 @@ public class CsvParserApplication implements CommandLineRunner {
     public void run(String... args) throws IOException {
         LOGGER.info("Startup of CSV parser");
         csvParseAndStoreService.parseCsv();
+        csvParseAndStoreService.storeToElastic();
     }
 }

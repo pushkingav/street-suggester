@@ -45,13 +45,13 @@ public class CsvParseAndStoreService {
 
         parsedAddresses.addAll(addressList);
         addressList.clear();
-
-        if (needStorage) {
-            storeToElastic();
-        }
     }
 
-    private void storeToElastic() {
+    public void storeToElastic() {
+        if (!needStorage) {
+            LOGGER.info("Will not store data to Elasticsearch due to store.to.elastic parameter");
+            return;
+        }
         LOGGER.info("Saving {} store addresses to ElasticSearch", parsedAddresses.size());
         List<ElasticStoreAddress> elasticStoreAddresses = parsedAddresses
                 .stream()
