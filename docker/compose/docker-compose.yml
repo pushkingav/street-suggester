@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  ap-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.2.3
+    hostname: ap-es
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - ./ap-es/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    stop_grace_period: 5m

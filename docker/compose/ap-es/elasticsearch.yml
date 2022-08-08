@@ -1,0 +1,5 @@
+cluster.name: ap
+node.name: ap-es-01
+network.host: 0.0.0.0
+discovery.type: single-node
+xpack.security.enabled: false
