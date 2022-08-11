@@ -6,11 +6,6 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
 import com.apushkin.ssure.search.model.ElasticStreetName;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.suggest.SuggestBuilder;
-import org.elasticsearch.search.suggest.SuggestionBuilder;
-import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,6 +31,7 @@ public class SearchSuggestionService {
 
     public void searchWithSuggestion(String searchTerm) throws IOException {
         SearchResponse<ElasticStreetName> response = client.search(searchRequestBuilder -> searchRequestBuilder
+                        .index("addresses")
                         .suggest(suggestBuilder -> suggestBuilder
                                 .text(searchTerm)
                                 .suggesters("term-suggester", fieldSuggesterBuilder -> fieldSuggesterBuilder
