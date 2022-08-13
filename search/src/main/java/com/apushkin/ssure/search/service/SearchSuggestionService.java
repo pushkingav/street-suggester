@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
+import com.apushkin.ssure.search.model.ElasticStoreAddress;
 import com.apushkin.ssure.search.model.ElasticStreetName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +31,28 @@ public class SearchSuggestionService {
     }
 
     public void searchWithSuggestion(String searchTerm) throws IOException {
-        SearchResponse<ElasticStreetName> response = client.search(searchRequestBuilder -> searchRequestBuilder
+        SearchResponse<ElasticStoreAddress> response = client.search(searchRequestBuilder -> searchRequestBuilder
                         .index("addresses")
                         .suggest(suggestBuilder -> suggestBuilder
                                 .text(searchTerm)
                                 .suggesters("term-suggester", fieldSuggesterBuilder -> fieldSuggesterBuilder
-                                        .term(termBuilder -> termBuilder.field("name")
-                                                .lowercaseTerms(true)
+                                        .term(termBuilder -> termBuilder.field("addressLine")
+//                                                .lowercaseTerms(true)
                                         ))),
-                ElasticStreetName.class);
+                ElasticStoreAddress.class);
+        TotalHits total = response.hits().total();
+        boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
+        if (isExactResult) {
+            logger.info("There are " + total.value() + " results");
+        } else {
+            logger.info("There are more than " + total.value() + " results");
+        }
 
+        List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
+        for (Hit<ElasticStoreAddress> hit : hits) {
+            ElasticStoreAddress name = hit.source();
+            logger.info("Found street name " + name.getAddressLine() + ", score " + hit.score());
+        }
     }
 
     public void searchInsideElastic(String searchTerm) throws IOException {

@@ -2,12 +2,12 @@ package com.apushkin.ssure.search.controller;
 
 import com.apushkin.ssure.search.service.SearchSuggestionService;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
-@RestController(value = "/search")
+@RestController
 public class SearchApiController {
 
     private final SearchSuggestionService searchSuggestionService;
@@ -16,8 +16,8 @@ public class SearchApiController {
         this.searchSuggestionService = searchSuggestionService;
     }
 
-    @GetMapping
-    public void search(@PathVariable String searchString) throws IOException {
+    @GetMapping(value = "/search")
+    public void search(@RequestParam String searchString) throws IOException {
         searchSuggestionService.searchWithSuggestion(searchString);
     }
 }
