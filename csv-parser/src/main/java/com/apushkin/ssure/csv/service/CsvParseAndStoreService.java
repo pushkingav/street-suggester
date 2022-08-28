@@ -55,7 +55,8 @@ public class CsvParseAndStoreService {
         LOGGER.info("Saving {} store addresses to ElasticSearch", parsedAddresses.size());
         List<ElasticStoreAddress> elasticStoreAddresses = parsedAddresses
                 .stream()
-                .map(parsedAddress -> new ElasticStoreAddress(parsedAddress.getCity(), parsedAddress.getAddressLine()))
+                .map(parsedAddress -> new ElasticStoreAddress(parsedAddress.getCity(),
+                        parsedAddress.getAddressLine(), parsedAddress.getBusinessName()))
                 .collect(Collectors.toList());
 
         repository.saveAll(elasticStoreAddresses);

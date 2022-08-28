@@ -14,6 +14,9 @@ public class StoreAddress {
     @CsvBindByName(column = "standardizedAddressLine1", required = true)
     private String addressLine;
 
+    @CsvBindByName(column = "businessName", required = true)
+    private String businessName;
+
     public String getCity() {
         return city;
     }
@@ -28,5 +31,13 @@ public class StoreAddress {
 
     public void setAddressLine(String addressLine) {
         this.addressLine = addressLine;
+    }
+
+    public String getBusinessName() {
+        return businessName;
+    }
+
+    public void setBusinessName(String businessName) {
+        this.businessName = businessName;
     }
 }

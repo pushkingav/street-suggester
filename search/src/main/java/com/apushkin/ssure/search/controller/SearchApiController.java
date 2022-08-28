@@ -23,6 +23,11 @@ public class SearchApiController {
 
     @GetMapping(value = "/search")
     public List<String> search(@RequestParam String searchString) throws IOException {
+        return searchSuggestionService.searchMultipleFields(searchString);
+    }
+
+    @GetMapping(value = "/search/suggest")
+    public List<String> searchSuggestions(@RequestParam String searchString) throws IOException {
         List<TermSuggestOption> termSuggestOptions = searchSuggestionService.searchWithSuggestion(searchString);
         return termSuggestOptions.stream().map(TermSuggestOption::text).collect(Collectors.toList());
     }

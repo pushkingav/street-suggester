@@ -19,8 +19,6 @@ import java.util.Map;
  * This version of the service is compatible and was designed for Elasticsearch 8.2.3
  */
 
-//TODO - add service version compatible with AWS Elasticsearch (7.x.?) and use @ConditionalOnProperty
-//TODO - use properties to determine where the app run: on-premises (using Docker?) or in AWS
 @Service
 public class SearchSuggestionService {
     private static final Logger logger = LoggerFactory.getLogger(SearchSuggestionService.class);
@@ -86,5 +84,36 @@ public class SearchSuggestionService {
             ElasticStreetName name = hit.source();
             logger.info("Found street name " + name.getName() + ", score " + hit.score());
         }
+    }
+
+    public List<String> searchMultipleFields(String searchTerm) throws IOException {
+        SearchResponse<ElasticStoreAddress> response = client.search(s -> s
+                .index("addresses")
+                .query(q -> q
+                        .multiMatch(t -> t
+                                .fields(List.of("city","businessName","addressLine"))
+                                .query(searchTerm)
+                        )
+                ), ElasticStoreAddress.class);
+        TotalHits total = response.hits().total();
+        boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
+
+        if (isExactResult) {
+            logger.info("There are " + total.value() + " results");
+        } else {
+            logger.info("There are more than " + total.value() + " results");
+        }
+
+        List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
+        for (Hit<ElasticStoreAddress> hit : hits) {
+            ElasticStoreAddress storeAddress = hit.source();
+            logger.info("Found street storeAddress {} {} {}, score {} ", storeAddress.getBusinessName(),
+                    storeAddress.getAddressLine(), storeAddress.getCity(), hit.score());
+        }
+        return hits
+                .stream()
+                .map(hit -> String.join(" ", hit.source().getBusinessName(), hit.source().getAddressLine(),
+                        hit.source().getCity()))
+                .toList();
     }
 }
