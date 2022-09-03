@@ -17,16 +17,19 @@ public class ElasticStoreAddress {
 
     private String businessName;
 
+    private String postalCode;
+
     @JsonIgnore
     private String _class;
 
     public ElasticStoreAddress() {
     }
 
-    public ElasticStoreAddress(String city, String addressLine, String businessName) {
+    public ElasticStoreAddress(String city, String addressLine, String businessName, String postalCode) {
         this.city = city;
         this.addressLine = addressLine;
         this.businessName = businessName;
+        this.postalCode = postalCode;
     }
 
     public String getId() {
@@ -61,6 +64,14 @@ public class ElasticStoreAddress {
         this.businessName = businessName;
     }
 
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
     public String get_class() {
         return _class;
     }
@@ -77,11 +88,13 @@ public class ElasticStoreAddress {
         return Objects.equals(id, that.id)
                 && Objects.equals(city, that.city)
                 && Objects.equals(addressLine, that.addressLine)
-                && Objects.equals(businessName, that.businessName);
+                && Objects.equals(businessName, that.businessName)
+                && Objects.equals(postalCode, that.postalCode)
+                && Objects.equals(_class, that._class);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, city, addressLine, businessName);
+        return Objects.hash(id, city, addressLine, businessName, postalCode, _class);
     }
 }

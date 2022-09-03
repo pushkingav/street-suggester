@@ -16,13 +16,16 @@ public class ElasticStoreAddress {
 
     private String businessName;
 
+    private String postalCode;
+
     public ElasticStoreAddress() {
     }
 
-    public ElasticStoreAddress(String city, String addressLine, String businessName) {
+    public ElasticStoreAddress(String city, String addressLine, String businessName, String postalCode) {
         this.city = city;
         this.addressLine = addressLine;
         this.businessName = businessName;
+        this.postalCode = postalCode;
     }
 
     public String getId() {
@@ -57,6 +60,14 @@ public class ElasticStoreAddress {
         this.businessName = businessName;
     }
 
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -65,11 +76,12 @@ public class ElasticStoreAddress {
         return Objects.equals(id, that.id)
                 && Objects.equals(city, that.city)
                 && Objects.equals(addressLine, that.addressLine)
-                && Objects.equals(businessName, that.businessName);
+                && Objects.equals(businessName, that.businessName)
+                && Objects.equals(postalCode, that.postalCode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, city, addressLine, businessName);
+        return Objects.hash(id, city, addressLine, businessName, postalCode);
     }
 }

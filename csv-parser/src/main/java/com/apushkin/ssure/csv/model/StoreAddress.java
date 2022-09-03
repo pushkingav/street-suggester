@@ -17,6 +17,9 @@ public class StoreAddress {
     @CsvBindByName(column = "businessName", required = true)
     private String businessName;
 
+    @CsvBindByName(column = "postalCode", required = true)
+    private String postalCode;
+
     public String getCity() {
         return city;
     }
@@ -39,5 +42,13 @@ public class StoreAddress {
 
     public void setBusinessName(String businessName) {
         this.businessName = businessName;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
     }
 }

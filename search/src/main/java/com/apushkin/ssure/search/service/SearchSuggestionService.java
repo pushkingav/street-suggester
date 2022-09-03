@@ -1,6 +1,7 @@
 package com.apushkin.ssure.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.*;
 import com.apushkin.ssure.search.model.ElasticStoreAddress;
@@ -91,7 +92,8 @@ public class SearchSuggestionService {
                 .index("addresses")
                 .query(q -> q
                         .multiMatch(t -> t
-                                .fields(List.of("city","businessName","addressLine"))
+                                .fields(List.of("city","businessName","addressLine", "postalCode"))
+                                .type(TextQueryType.CrossFields)
                                 .query(searchTerm)
                         )
                 ), ElasticStoreAddress.class);
@@ -107,13 +109,13 @@ public class SearchSuggestionService {
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         for (Hit<ElasticStoreAddress> hit : hits) {
             ElasticStoreAddress storeAddress = hit.source();
-            logger.info("Found street storeAddress {} {} {}, score {} ", storeAddress.getBusinessName(),
-                    storeAddress.getAddressLine(), storeAddress.getCity(), hit.score());
+            logger.info("Found street storeAddress {} {} {} {}, score {} ", storeAddress.getPostalCode(),
+                    storeAddress.getBusinessName(), storeAddress.getAddressLine(), storeAddress.getCity(), hit.score());
         }
         return hits
                 .stream()
-                .map(hit -> String.join(" ", hit.source().getBusinessName(), hit.source().getAddressLine(),
-                        hit.source().getCity()))
+                .map(hit -> String.join(", ", hit.source().getPostalCode(), hit.source().getBusinessName(),
+                        hit.source().getAddressLine(), hit.source().getCity()))
                 .toList();
     }
 }
