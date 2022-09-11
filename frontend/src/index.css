@@ -7,4 +7,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.App-header .search-group {
+  display: flex;
+  width: 380px;
+  justify-content: space-between;
+}
 
