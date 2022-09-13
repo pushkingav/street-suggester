@@ -114,8 +114,8 @@ public class SearchSuggestionService {
         }
         return hits
                 .stream()
-                .map(hit -> String.join(", ", hit.source().getPostalCode(), hit.source().getBusinessName(),
-                        hit.source().getAddressLine(), hit.source().getCity()))
+                .map(hit -> String.join(", ", String.format("(%.2f)", hit.score()), hit.source().getPostalCode(),
+                        hit.source().getBusinessName(), hit.source().getAddressLine(), hit.source().getCity()))
                 .toList();
     }
 }
