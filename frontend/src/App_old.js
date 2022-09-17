@@ -1,6 +1,5 @@
 import './App.css';
 import {useState} from "react";
-import PharmacyName from "./SearchForm/PharmacyName";
 
 const App = () => {
     const [searchString, setSearchString] = useState("");
@@ -46,7 +45,19 @@ const App = () => {
     return (
         <div className="App">
             <header className="App-header">
-                <PharmacyName />
+                <div className="search-group">
+                    <div className="bp4-input-group .bp4-large">
+                        <span className="bp4-icon bp4-icon-search"></span>
+                        <input className="bp4-input" onChange={onChangeHandler}
+                               onKeyDown={onKeyDownHandler} type="search" placeholder="Search input" dir="auto"/>
+                    </div>
+                    <button onClick={onSearchClickHandler} className="bp4-button .bp4-small">Search</button>
+                    <button onClick={onSuggestClickHandler} className="bp4-button">Suggest</button>
+                </div>
+                <div>
+                    {results.map((result, index) => <div key={result + index}>{result}</div>)}
+                    {suggestedResults.map((result, index) => <div key={result + index}>{result}</div>)}
+                </div>
             </header>
         </div>
     );
