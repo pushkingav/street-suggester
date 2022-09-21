@@ -13,6 +13,16 @@
   color: white;
 }
 
+.group-line {
+  display: flex;
+  flex-direction: row;
+  column-gap: 0.5rem;
+}
+
+.search-results-area {
+  background-color: darkgray;
+}
+
 
 
 

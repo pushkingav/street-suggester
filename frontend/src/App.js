@@ -1,6 +1,7 @@
 import './App.css';
 import {useState} from "react";
-import PharmacyName from "./SearchForm/PharmacyName";
+import SearchField from "./SearchForm/SearchField/SearchField";
+import SearchButton from "./SearchForm/SearchButton/SearchButton";
 
 const App = () => {
     const [searchString, setSearchString] = useState("");
@@ -46,8 +47,38 @@ const App = () => {
     return (
         <div className="App">
             <header className="App-header">
-                <PharmacyName />
+                <div className="group-line">
+                    <SearchField
+                        label="Pharmacy Name"
+                        id="pharmacy-name-selector"
+                        type="search"
+                    />
+                    <SearchField
+                        label="Address"
+                        id="address-selector"
+                        type="search"
+                    />
+                    <SearchField
+                        label="Zip"
+                        id="zip-selector"
+                        type="search"
+                    />
+                    <SearchField
+                        label="City"
+                        id="city-selector"
+                        type="search"
+                    />
+                    <SearchField
+                        label="State"
+                        id="state-selector"
+                        type="search"
+                    />
+                    <SearchButton icon="search" label="Search!"/>
+                </div>
             </header>
+            <div className="search-results-area">
+                <div>Search results go here...</div>
+            </div>
         </div>
     );
 }
