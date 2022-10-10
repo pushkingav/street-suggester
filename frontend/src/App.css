@@ -3,8 +3,8 @@
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  background-color: #d8b103;
+  min-height: 20vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,7 +20,8 @@
 }
 
 .search-results-area {
-  background-color: darkgray;
+  background-color: #aab5c7;
+  min-height: 80vh;
 }
 
 

@@ -56,7 +56,8 @@ public class CsvParseAndStoreService {
         List<ElasticStoreAddress> elasticStoreAddresses = parsedAddresses
                 .stream()
                 .map(parsedAddress -> new ElasticStoreAddress(parsedAddress.getCity(),
-                        parsedAddress.getAddressLine(), parsedAddress.getBusinessName(), parsedAddress.getPostalCode()))
+                        parsedAddress.getAddressLine(), parsedAddress.getBusinessName(),
+                        parsedAddress.getPostalCode(), parsedAddress.getState()))
                 .collect(Collectors.toList());
 
         repository.saveAll(elasticStoreAddresses);

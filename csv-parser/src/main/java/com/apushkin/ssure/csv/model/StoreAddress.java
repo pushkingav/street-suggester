@@ -20,6 +20,9 @@ public class StoreAddress {
     @CsvBindByName(column = "postalCode", required = true)
     private String postalCode;
 
+    @CsvBindByName(column = "standardizedStateProvince", required = true)
+    private String state;
+
     public String getCity() {
         return city;
     }
@@ -50,5 +53,13 @@ public class StoreAddress {
 
     public void setPostalCode(String postalCode) {
         this.postalCode = postalCode;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }
