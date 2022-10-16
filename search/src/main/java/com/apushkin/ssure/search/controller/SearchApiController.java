@@ -2,6 +2,8 @@ package com.apushkin.ssure.search.controller;
 
 import co.elastic.clients.elasticsearch.core.search.TermSuggestOption;
 import com.apushkin.ssure.search.service.SearchSuggestionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 public class SearchApiController {
+    private static final Logger log = LoggerFactory.getLogger(SearchApiController.class);
 
     private final SearchSuggestionService searchSuggestionService;
 
@@ -22,8 +25,14 @@ public class SearchApiController {
     }
 
     @GetMapping(value = "/search")
-    public List<String> search(@RequestParam String searchString) throws IOException {
-        return searchSuggestionService.searchMultipleFields(searchString);
+    public List<String> search(@RequestParam(required = false) String pharmaName,
+                               @RequestParam(required = false) String address,
+                               @RequestParam(required = false) String zip,
+                               @RequestParam(required = false) String city,
+                               @RequestParam(required = false) String state) throws IOException {
+        log.info("Searching for: pharmaName: {}, address: {}, zip: {}, city: {}, state: {}", pharmaName, address, zip,
+                city, state);
+        return searchSuggestionService.searchMultipleFields(pharmaName);
     }
 
     @GetMapping(value = "/search/suggest")
