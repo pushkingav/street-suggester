@@ -1,6 +1,8 @@
 package com.apushkin.ssure.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.*;
@@ -87,7 +89,7 @@ public class SearchSuggestionService {
         }
     }
 
-    public List<String> searchMultipleFields(String searchTerm) throws IOException {
+    public List<String> searchMultiMatch(String searchTerm) throws IOException {
         SearchResponse<ElasticStoreAddress> response = client.search(s -> s
                 .index("addresses")
                 .query(q -> q
@@ -97,6 +99,31 @@ public class SearchSuggestionService {
                                 .query(searchTerm)
                         )
                 ), ElasticStoreAddress.class);
+
+
+        return convertResponse(response);
+    }
+
+    public List<String> searchMultipleFields(String pharmaName, String address, String zip, String city,
+                                             String state) throws IOException {
+        BoolQuery.Builder businessName = QueryBuilders.bool()
+                .must(QueryBuilders.match()
+                        .field("businessName")
+                        .query(pharmaName)
+                        .build()._toQuery());
+        SearchResponse<ElasticStoreAddress> response = client.search(s -> s
+                .index("addresses")
+                .query(businessName.build()._toQuery()), ElasticStoreAddress.class);
+
+        /*field("city").query(city)
+                                .field("businessName").query(pharmaName)
+                                .field("addressLine").query(address)
+                                .field("postalCode").query(zip)
+                                .field("state").query(state)*/
+        return convertResponse(response);
+    }
+
+    private static List<String> convertResponse(SearchResponse<ElasticStoreAddress> response) {
         TotalHits total = response.hits().total();
         boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
 
@@ -105,7 +132,6 @@ public class SearchSuggestionService {
         } else {
             logger.info("There are more than " + total.value() + " results");
         }
-
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         for (Hit<ElasticStoreAddress> hit : hits) {
             ElasticStoreAddress storeAddress = hit.source();

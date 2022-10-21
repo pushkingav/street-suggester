@@ -32,7 +32,7 @@ public class SearchApiController {
                                @RequestParam(required = false) String state) throws IOException {
         log.info("Searching for: pharmaName: {}, address: {}, zip: {}, city: {}, state: {}", pharmaName, address, zip,
                 city, state);
-        return searchSuggestionService.searchMultipleFields(pharmaName);
+        return searchSuggestionService.searchMultipleFields(pharmaName, address, zip, city, state);
     }
 
     @GetMapping(value = "/search/suggest")

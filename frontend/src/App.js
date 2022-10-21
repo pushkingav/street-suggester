@@ -112,7 +112,10 @@ const App = () => {
                 </div>
             </header>
             <div className="search-results-area">
-                <div>Search results go here...</div>
+                <div>
+                    {results.map((result, index) => <div key={result + index}>{result}</div>)}
+                    {suggestedResults.map((result, index) => <div key={result + index}>{result}</div>)}
+                </div>
             </div>
         </div>
     );
