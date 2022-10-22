@@ -1,18 +1,19 @@
 package com.apushkin.ssure.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
-import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.*;
 import com.apushkin.ssure.search.model.ElasticStoreAddress;
 import com.apushkin.ssure.search.model.ElasticStreetName;
+import com.apushkin.ssure.search.model.SearchField;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +95,7 @@ public class SearchSuggestionService {
                 .index("addresses")
                 .query(q -> q
                         .multiMatch(t -> t
-                                .fields(List.of("city","businessName","addressLine", "postalCode"))
+                                .fields(List.of("city", "businessName", "addressLine", "postalCode"))
                                 .type(TextQueryType.CrossFields)
                                 .query(searchTerm)
                         )
@@ -106,21 +107,42 @@ public class SearchSuggestionService {
 
     public List<String> searchMultipleFields(String pharmaName, String address, String zip, String city,
                                              String state) throws IOException {
-        BoolQuery.Builder businessName = QueryBuilders.bool()
-                .must(QueryBuilders.match()
-                        .field("businessName")
-                        .query(pharmaName)
-                        .build()._toQuery());
+        List<Query> queries = buildQueries(pharmaName, address, zip, city, state);
+        BoolQuery.Builder builder = QueryBuilders.bool().must(queries);
         SearchResponse<ElasticStoreAddress> response = client.search(s -> s
-                .index("addresses")
-                .query(businessName.build()._toQuery()), ElasticStoreAddress.class);
-
-        /*field("city").query(city)
-                                .field("businessName").query(pharmaName)
-                                .field("addressLine").query(address)
-                                .field("postalCode").query(zip)
-                                .field("state").query(state)*/
+                        .index("addresses")
+                        .query(builder.build()._toQuery()),
+                ElasticStoreAddress.class
+        );
         return convertResponse(response);
+    }
+
+    private List<Query> buildQueries(String pharmaName, String address, String zip, String city,
+                                     String state) {
+        List<Query> queries = new ArrayList<>();
+        if (!StringUtils.isBlank(pharmaName)) {
+            queries.add(createMatchQuery(SearchField.BUSINESS_NAME, pharmaName));
+        }
+        if (!StringUtils.isBlank(address)) {
+            queries.add(createMatchQuery(SearchField.ADDRESS, address));
+        }
+        if (!StringUtils.isBlank(city)) {
+            queries.add(createMatchQuery(SearchField.CITY, city));
+        }
+        if (!StringUtils.isBlank(state)) {
+            queries.add(createMatchQuery(SearchField.STATE, state));
+        }
+        if (!StringUtils.isBlank(zip)) {
+            queries.add(createMatchQuery(SearchField.ZIP, zip));
+        }
+        return queries;
+    }
+
+    private Query createMatchQuery(SearchField field, String query) {
+        return MatchQuery.of(m -> m
+                .field(field.toString())
+                .query(query)
+        )._toQuery();
     }
 
     private static List<String> convertResponse(SearchResponse<ElasticStoreAddress> response) {
