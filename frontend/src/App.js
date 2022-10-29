@@ -36,22 +36,18 @@ const App = () => {
 
     const onKeyDownHandler = async (e) => {
         if (e.keyCode === 13) {
-            clearResults();
-            const response = await fetch(`http://localhost:8080/search?searchString=${searchString}`);
-            const body = await response.json();
-            setResults(body);
-            console.log(results);
+           await onSearchClickHandler();
         }
     };
 
     const onSearchClickHandler = async () => {
         clearResults();
         const searchDetails = [];
-        if (pharmaName !== "") searchDetails.push(`pharmaName=${pharmaName}`);
-        if (address !== "") searchDetails.push(`address=${address}`);
-        if (zip !== "") searchDetails.push(`zip=${zip}`);
-        if (city !== "") searchDetails.push(`city=${city}`);
-        if (state !== "") searchDetails.push(`state=${state}`);
+        if (pharmaName !== "") searchDetails.push(`pharmaName=${encodeURIComponent(pharmaName)}`);
+        if (address !== "") searchDetails.push(`address=${encodeURIComponent(address)}`);
+        if (zip !== "") searchDetails.push(`zip=${encodeURIComponent(zip)}`);
+        if (city !== "") searchDetails.push(`city=${encodeURIComponent(city)}`);
+        if (state !== "") searchDetails.push(`state=${encodeURIComponent(state)}`);
         const request = searchDetails.join(`&`);
         console.log("Request = ", request);
 
@@ -83,32 +79,38 @@ const App = () => {
                         id="pharmacy-name-selector"
                         type="search"
                         onChangeHandler={pharmaNameChangeHandler}
+                        onKeyDownHandler={onKeyDownHandler}
                     />
                     <SearchField
                         label="Address"
                         id="address-selector"
                         type="search"
                         onChangeHandler={addressChangeHandler}
+                        onKeyDownHandler={onKeyDownHandler}
                     />
                     <SearchField
                         label="Zip"
                         id="zip-selector"
                         type="search"
                         onChangeHandler={zipChangeHandler}
+                        onKeyDownHandler={onKeyDownHandler}
                     />
                     <SearchField
                         label="City"
                         id="city-selector"
                         type="search"
                         onChangeHandler={cityChangeHandler}
+                        onKeyDownHandler={onKeyDownHandler}
                     />
                     <SearchField
                         label="State"
                         id="state-selector"
                         type="search"
                         onChangeHandler={stateChangeHandler}
+                        onKeyDownHandler={onKeyDownHandler}
                     />
                     <SearchButton icon="search" label="Search!" onClick={onSearchClickHandler}/>
+                    <SearchButton icon="reset" label="Clear" onClick={onSearchClickHandler}/>
                 </div>
             </header>
             <div className="search-results-area">
