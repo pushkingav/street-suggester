@@ -2,6 +2,8 @@ package com.apushkin.ssure.csv.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.Objects;
 
@@ -14,6 +16,7 @@ public class ElasticStoreAddress {
 
     private String addressLine;
 
+    @Field(type = FieldType.Text, analyzer = "english")
     private String businessName;
 
     private String postalCode;

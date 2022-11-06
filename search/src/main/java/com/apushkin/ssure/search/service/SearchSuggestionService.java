@@ -142,6 +142,7 @@ public class SearchSuggestionService {
         return MatchQuery.of(m -> m
                 .field(field.toString())
                 .query(query)
+                .analyzer("english")
         )._toQuery();
     }
 
