@@ -38,7 +38,7 @@ public class CsvParseAndStoreService {
     }
 
     public void parseCsv() throws IOException {
-        LOGGER.info(String.format("Found csv file: %s", filename));
+        LOGGER.info(String.format("Csv file to read: %s", filename));
         List<StoreAddress> addressList = new CsvToBeanBuilder(new FileReader(filename))
                 .withType(StoreAddress.class).build().parse();
         LOGGER.info(String.format("Parsed %d lines", addressList.size()));

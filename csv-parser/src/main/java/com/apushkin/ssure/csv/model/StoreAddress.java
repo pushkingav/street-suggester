@@ -11,16 +11,16 @@ public class StoreAddress {
     @CsvBindByName(column = "city", required = true)
     private String city;
 
-    @CsvBindByName(column = "standardizedAddressLine1", required = true)
+    @CsvBindByName(column = "standardizedAddressLine1")
     private String addressLine;
 
     @CsvBindByName(column = "businessName", required = true)
     private String businessName;
 
-    @CsvBindByName(column = "postalCode", required = true)
+    @CsvBindByName(column = "postalCode")
     private String postalCode;
 
-    @CsvBindByName(column = "standardizedStateProvince", required = true)
+    @CsvBindByName(column = "standardizedStateProvince")
     private String state;
 
     public String getCity() {

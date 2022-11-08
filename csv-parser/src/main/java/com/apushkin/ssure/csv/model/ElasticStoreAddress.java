@@ -12,8 +12,10 @@ public class ElasticStoreAddress {
     @Id
     private String id;
 
+    @Field(type = FieldType.Text, analyzer = "english")
     private String city;
 
+    @Field(type = FieldType.Text, analyzer = "english")
     private String addressLine;
 
     @Field(type = FieldType.Text, analyzer = "english")
