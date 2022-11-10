@@ -110,7 +110,7 @@ const App = () => {
                         onKeyDownHandler={onKeyDownHandler}
                     />
                     <SearchButton icon="search" label="Search!" onClick={onSearchClickHandler}/>
-                    <SearchButton icon="reset" label="Clear" onClick={onSearchClickHandler}/>
+                    <SearchButton icon="reset" label="Clear" onClick={clearResults}/>
                 </div>
             </header>
             <div className="search-results-area">
