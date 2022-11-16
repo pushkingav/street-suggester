@@ -139,11 +139,18 @@ public class SearchSuggestionService {
     }
 
     private Query createMatchQuery(SearchField field, String query) {
-        return MatchQuery.of(m -> m
-                .field(field.toString())
-                .query(query)
-                .analyzer("english")
-        )._toQuery();
+        MatchQuery result;
+        switch (field) {
+            case BUSINESS_NAME, ADDRESS, CITY -> result = MatchQuery.of(m -> m
+                    .field(field.toString())
+                    .query(query)
+                    .fuzziness("AUTO:3,6")
+                    .analyzer("english"));
+            default -> result = MatchQuery.of(m -> m
+                    .field(field.toString())
+                    .query(query));
+        }
+        return result._toQuery();
     }
 
     private static List<String> convertResponse(SearchResponse<ElasticStoreAddress> response) {
