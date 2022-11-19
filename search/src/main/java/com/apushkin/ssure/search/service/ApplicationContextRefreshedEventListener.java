@@ -1,12 +1,14 @@
 package com.apushkin.ssure.search.service;
 
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
+@Profile("non-test")
 public class ApplicationContextRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
     private final SearchSuggestionService searchSuggestionService;
 

@@ -1,6 +1,8 @@
 package com.apushkin.ssure.search.controller;
 
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.TermSuggestOption;
+import com.apushkin.ssure.search.model.ElasticStoreAddress;
 import com.apushkin.ssure.search.service.SearchSuggestionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,9 @@ public class SearchApiController {
                                @RequestParam(required = false) String state) throws IOException {
         log.info("Searching for: pharmaName: {}, address: {}, zip: {}, city: {}, state: {}", pharmaName, address, zip,
                 city, state);
-        return searchSuggestionService.searchMultipleFields(pharmaName, address, zip, city, state);
+        SearchResponse<ElasticStoreAddress> response = searchSuggestionService
+                .searchMultipleFields(pharmaName, address, zip, city, state);
+        return searchSuggestionService.convertResponse(response);
     }
 
     @GetMapping(value = "/search/suggest")

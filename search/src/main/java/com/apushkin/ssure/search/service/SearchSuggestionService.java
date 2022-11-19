@@ -105,8 +105,8 @@ public class SearchSuggestionService {
         return convertResponse(response);
     }
 
-    public List<String> searchMultipleFields(String pharmaName, String address, String zip, String city,
-                                             String state) throws IOException {
+    public SearchResponse<ElasticStoreAddress> searchMultipleFields(String pharmaName, String address, String zip, String city,
+                                                                    String state) throws IOException {
         List<Query> queries = buildQueries(pharmaName, address, zip, city, state);
         BoolQuery.Builder builder = QueryBuilders.bool().must(queries);
         SearchResponse<ElasticStoreAddress> response = client.search(s -> s
@@ -114,7 +114,7 @@ public class SearchSuggestionService {
                         .query(builder.build()._toQuery()),
                 ElasticStoreAddress.class
         );
-        return convertResponse(response);
+        return response;
     }
 
     private List<Query> buildQueries(String pharmaName, String address, String zip, String city,
@@ -153,7 +153,7 @@ public class SearchSuggestionService {
         return result._toQuery();
     }
 
-    private static List<String> convertResponse(SearchResponse<ElasticStoreAddress> response) {
+    public List<String> convertResponse(SearchResponse<ElasticStoreAddress> response) {
         TotalHits total = response.hits().total();
         boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
 
