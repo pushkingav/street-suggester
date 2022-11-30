@@ -105,9 +105,9 @@ public class SearchSuggestionService {
         return convertResponse(response);
     }
 
-    public SearchResponse<ElasticStoreAddress> searchMultipleFields(String pharmaName, String address, String zip, String city,
-                                                                    String state) throws IOException {
-        List<Query> queries = buildQueries(pharmaName, address, zip, city, state);
+    public SearchResponse<ElasticStoreAddress> searchMultipleFields(String pharmaName, String address, String zip,
+                                                                    String city, String state, boolean isPhrase) throws IOException {
+        List<Query> queries = buildQueries(pharmaName, address, zip, city, state, isPhrase);
         BoolQuery.Builder builder = QueryBuilders.bool().must(queries);
         SearchResponse<ElasticStoreAddress> response = client.search(s -> s
                         .index("addresses")
@@ -117,11 +117,15 @@ public class SearchSuggestionService {
         return response;
     }
 
-    private List<Query> buildQueries(String pharmaName, String address, String zip, String city,
-                                     String state) {
+    private List<Query> buildQueries(String pharmaName, String address, String zip, String city, String state,
+                                     boolean isPhrase) {
         List<Query> queries = new ArrayList<>();
         if (!StringUtils.isBlank(pharmaName)) {
-            queries.add(createMatchQuery(SearchField.BUSINESS_NAME, pharmaName));
+            if (isPhrase) {
+                queries.add(createMatchPhraseQuery(SearchField.BUSINESS_NAME, pharmaName));
+            } else {
+                queries.add(createMatchQuery(SearchField.BUSINESS_NAME, pharmaName));
+            }
         }
         if (!StringUtils.isBlank(address)) {
             queries.add(createMatchQuery(SearchField.ADDRESS, address));
@@ -147,6 +151,20 @@ public class SearchSuggestionService {
                     .fuzziness("AUTO:3,6")
                     .analyzer("english"));
             default -> result = MatchQuery.of(m -> m
+                    .field(field.toString())
+                    .query(query));
+        }
+        return result._toQuery();
+    }
+
+    private Query createMatchPhraseQuery(SearchField field, String query) {
+        MatchPhraseQuery result;
+        switch (field) {
+            case BUSINESS_NAME, ADDRESS, CITY -> result = MatchPhraseQuery.of(m -> m
+                    .field(field.toString())
+                    .query(query)
+                    .analyzer("english"));
+            default -> result = MatchPhraseQuery.of(m -> m
                     .field(field.toString())
                     .query(query));
         }

@@ -35,7 +35,11 @@ public class SearchApiController {
         log.info("Searching for: pharmaName: {}, address: {}, zip: {}, city: {}, state: {}", pharmaName, address, zip,
                 city, state);
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(pharmaName, address, zip, city, state);
+                .searchMultipleFields(pharmaName, address, zip, city, state, true);
+        if (response.hits().hits().size() == 0) {
+            response = searchSuggestionService
+                    .searchMultipleFields(pharmaName, address, zip, city, state, false);
+        }
         return searchSuggestionService.convertResponse(response);
     }
 
