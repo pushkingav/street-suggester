@@ -8,6 +8,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.util.Objects;
 
 @Document(indexName = "addresses")
+//@Setting(settingPath = "/text_analyzer.json")
 public class ElasticStoreAddress {
     @Id
     private String id;
@@ -18,7 +19,7 @@ public class ElasticStoreAddress {
     @Field(type = FieldType.Text, analyzer = "english")
     private String addressLine;
 
-    @Field(type = FieldType.Text, analyzer = "english")
+    @Field(type = FieldType.Text, analyzer = "english"/*"rebuilt_english"*/)
     private String businessName;
 
     private String postalCode;
