@@ -3,7 +3,10 @@ package com.apushkin.ssure.search.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.TermvectorsResponse;
 import co.elastic.clients.elasticsearch.core.search.*;
+import co.elastic.clients.elasticsearch.core.termvectors.TermVector;
+import co.elastic.clients.util.ObjectBuilder;
 import com.apushkin.ssure.search.model.ElasticStoreAddress;
 import com.apushkin.ssure.search.model.ElasticStreetName;
 import com.apushkin.ssure.search.model.SearchField;
@@ -13,10 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Search for terms and suggestions in Elasticsearch instance.
@@ -192,5 +192,35 @@ public class SearchSuggestionService {
                         hit.source().getBusinessName(), hit.source().getCity(), hit.source().getAddressLine(),
                         hit.source().getState()))
                 .toList();
+    }
+
+    public List<String> getAllTokens() throws IOException {
+        MatchAllQuery matchAllQuery = MatchAllQuery
+                .of(maq -> (ObjectBuilder<MatchAllQuery>) maq.build())._toQuery().matchAll();
+
+        /*TotalHits total = response.hits().total();
+        boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
+
+        if (isExactResult) {
+            logger.info("There are " + total.value() + " results");
+        } else {
+            logger.info("There are more than " + total.value() + " results");
+        }*/
+
+       /* List<Hit<ElasticStreetName>> hits = response.hits().hits();
+        for (Hit<ElasticStreetName> hit : hits) {
+            ElasticStreetName name = hit.source();
+            logger.info("Found street name " + name.getName() + ", score " + hit.score());
+        }*/
+
+
+        TermvectorsResponse termvectors = client.termvectors(builder -> builder
+                .index("addresses")
+                .fields(Collections.singletonList(SearchField.BUSINESS_NAME.toString()))
+                .id("rKrJHIUBKD45lZdnW0KA")
+        );
+        Map<String, TermVector> stringTermVectorMap = termvectors.termVectors();
+        Set<String> terms = stringTermVectorMap.get("businessName").terms().keySet();
+        return new ArrayList<>(terms);
     }
 }

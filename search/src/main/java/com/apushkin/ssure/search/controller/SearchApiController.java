@@ -48,4 +48,9 @@ public class SearchApiController {
         List<TermSuggestOption> termSuggestOptions = searchSuggestionService.searchWithSuggestion(searchString);
         return termSuggestOptions.stream().map(TermSuggestOption::text).collect(Collectors.toList());
     }
+
+    @GetMapping(value = "/termvectors")
+    public List<String> getTermVectors() throws IOException {
+        return searchSuggestionService.getAllTokens();
+    }
 }
