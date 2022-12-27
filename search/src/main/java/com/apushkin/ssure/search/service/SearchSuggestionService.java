@@ -6,7 +6,6 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.TermvectorsResponse;
 import co.elastic.clients.elasticsearch.core.search.*;
 import co.elastic.clients.elasticsearch.core.termvectors.TermVector;
-import co.elastic.clients.util.ObjectBuilder;
 import com.apushkin.ssure.search.model.ElasticStoreAddress;
 import com.apushkin.ssure.search.model.ElasticStreetName;
 import com.apushkin.ssure.search.model.SearchField;
@@ -195,8 +194,23 @@ public class SearchSuggestionService {
     }
 
     public List<String> getAllTokens() throws IOException {
-        MatchAllQuery matchAllQuery = MatchAllQuery
-                .of(maq -> (ObjectBuilder<MatchAllQuery>) maq.build())._toQuery().matchAll();
+        List<String> allIds = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            int finalI = i;
+            SearchResponse<ElasticStoreAddress> response = client.search(s -> s
+                            .index("addresses")
+                            .query(q -> q
+                                    .matchAll(v -> v.queryName("a"))
+                            )
+                            .from((finalI * 10000))
+                            .size( 10000),
+                    ElasticStoreAddress.class
+            );
+            List<String> ids = response.hits().hits().stream().map(Hit::id).toList();
+            allIds.addAll(ids);
+        }
+
+        logger.info("Size of allIds: {}", allIds.size());
 
         /*TotalHits total = response.hits().total();
         boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
