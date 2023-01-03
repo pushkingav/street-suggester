@@ -1,7 +1,10 @@
 package com.apushkin.ssure.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.Time;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch.core.ScrollRequest;
+import co.elastic.clients.elasticsearch.core.ScrollResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.TermvectorsResponse;
 import co.elastic.clients.elasticsearch.core.search.*;
@@ -195,21 +198,32 @@ public class SearchSuggestionService {
 
     public List<String> getAllTokens() throws IOException {
         List<String> allIds = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            int finalI = i;
-            SearchResponse<ElasticStoreAddress> response = client.search(s -> s
-                            .index("addresses")
-                            .query(q -> q
-                                    .matchAll(v -> v.queryName("a"))
-                            )
-                            .from((finalI * 10000))
-                            .size( 10000),
-                    ElasticStoreAddress.class
-            );
-            List<String> ids = response.hits().hits().stream().map(Hit::id).toList();
+        String scrollId;
+        SearchResponse<ElasticStoreAddress> response = client.search(s -> s
+                        .scroll(Time.of(builder -> builder.time("3m")))
+                        .index("addresses")
+                        .query(q -> q
+                                .matchAll(v -> v.queryName("a"))
+                        )
+                        .size(1000),
+                ElasticStoreAddress.class
+        );
+        List<String> ids = response.hits().hits().stream().map(Hit::id).toList();
+        allIds.addAll(ids);
+        scrollId = response.scrollId();
+        ScrollResponse<ElasticStoreAddress> sc;
+        do {
+            String finalScrollId = scrollId;
+            sc = client
+                    .scroll(ScrollRequest.of(builder -> builder
+                                    .scrollId(finalScrollId)
+                                    .scroll(Time.of(t -> t.time("3m")))),
+                            ElasticStoreAddress.class);
+            ids = sc.hits().hits().stream().map(Hit::id).toList();
             allIds.addAll(ids);
-        }
-
+            scrollId = sc.scrollId();
+        } while (scrollId != null || sc.hits().total().value() == 0);
+        client.clearScroll();
         logger.info("Size of allIds: {}", allIds.size());
 
         /*TotalHits total = response.hits().total();
