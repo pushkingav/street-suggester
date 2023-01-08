@@ -3,12 +3,8 @@ package com.apushkin.ssure.search.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Time;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
-import co.elastic.clients.elasticsearch.core.ScrollRequest;
-import co.elastic.clients.elasticsearch.core.ScrollResponse;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.TermvectorsResponse;
+import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.search.*;
-import co.elastic.clients.elasticsearch.core.termvectors.TermVector;
 import com.apushkin.ssure.search.model.ElasticStoreAddress;
 import com.apushkin.ssure.search.model.ElasticStreetName;
 import com.apushkin.ssure.search.model.SearchField;
@@ -19,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Search for terms and suggestions in Elasticsearch instance.
@@ -200,10 +197,10 @@ public class SearchSuggestionService {
         List<String> allIds = new ArrayList<>();
         String scrollId;
         SearchResponse<ElasticStoreAddress> response = client.search(s -> s
-                        .scroll(Time.of(builder -> builder.time("3m")))
+                        .scroll(Time.of(builder -> builder.time("30s")))
                         .index("addresses")
                         .query(q -> q
-                                .matchAll(v -> v.queryName("a"))
+                                .matchAll(v -> QueryBuilders.matchAll())
                         )
                         .size(1000),
                 ElasticStoreAddress.class
@@ -217,38 +214,34 @@ public class SearchSuggestionService {
             sc = client
                     .scroll(ScrollRequest.of(builder -> builder
                                     .scrollId(finalScrollId)
-                                    .scroll(Time.of(t -> t.time("3m")))),
+                                    .scroll(Time.of(t -> t.time("1m")))),
                             ElasticStoreAddress.class);
             ids = sc.hits().hits().stream().map(Hit::id).toList();
             allIds.addAll(ids);
             scrollId = sc.scrollId();
-        } while (scrollId != null || sc.hits().total().value() == 0);
-        client.clearScroll();
+        } while (sc.hits().hits().size() != 0);
+        String finalScrollId1 = scrollId;
+        client.clearScroll(ClearScrollRequest.of(b -> b.scrollId(finalScrollId1)));
         logger.info("Size of allIds: {}", allIds.size());
 
-        /*TotalHits total = response.hits().total();
-        boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
+        ConcurrentLinkedQueue<String> terms = new ConcurrentLinkedQueue<>();
 
-        if (isExactResult) {
-            logger.info("There are " + total.value() + " results");
-        } else {
-            logger.info("There are more than " + total.value() + " results");
-        }*/
+        allIds.parallelStream().forEach(id -> {
+            TermvectorsResponse termVectors;
+            try {
+                termVectors = client.termvectors(builder -> builder
+                        .index("addresses")
+                        .fields(Collections.singletonList(SearchField.BUSINESS_NAME.toString()))
+                        .id(id));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            termVectors.termVectors().get("businessName").terms().keySet().forEach(t -> terms.add(t));
+        });
+        Set<String> termSet = new TreeSet<>(terms);
+        List<String> sorted = termSet.stream().filter(term -> term.length() > 1).sorted().toList();
+        logger.info("Terms size: {}", terms.size());
 
-       /* List<Hit<ElasticStreetName>> hits = response.hits().hits();
-        for (Hit<ElasticStreetName> hit : hits) {
-            ElasticStreetName name = hit.source();
-            logger.info("Found street name " + name.getName() + ", score " + hit.score());
-        }*/
-
-
-        TermvectorsResponse termvectors = client.termvectors(builder -> builder
-                .index("addresses")
-                .fields(Collections.singletonList(SearchField.BUSINESS_NAME.toString()))
-                .id("rKrJHIUBKD45lZdnW0KA")
-        );
-        Map<String, TermVector> stringTermVectorMap = termvectors.termVectors();
-        Set<String> terms = stringTermVectorMap.get("businessName").terms().keySet();
         return new ArrayList<>(terms);
     }
 }
