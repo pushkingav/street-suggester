@@ -8,6 +8,8 @@ import co.elastic.clients.elasticsearch.core.search.*;
 import com.apushkin.ssure.search.model.ElasticStoreAddress;
 import com.apushkin.ssure.search.model.ElasticStreetName;
 import com.apushkin.ssure.search.model.SearchField;
+import org.apache.commons.collections4.Trie;
+import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -243,5 +245,48 @@ public class SearchSuggestionService {
         logger.info("Terms size: {}", terms.size());
 
         return new ArrayList<>(terms);
+    }
+
+    public String findSuggestion() {
+        Set<String> terms = new HashSet<>();
+        terms.add("express");
+        terms.add("script");
+
+        Trie<String, String> trie = new PatriciaTrie<>();
+        trie.put("exp", "exp");
+        trie.put("expr", "expr");
+        trie.put("expre", "expre");
+        trie.put("express", "express");
+        trie.put("script", "script");
+        trie.put("scrumble", "scrumble");
+        trie.put("scripts", "scripts");
+        SortedMap<String, String> prefixMap;
+        String query = "expresss";
+        for (int i = 3; i < query.length(); i++) {
+            String subQuery = query.substring(0, i);
+            prefixMap = trie.prefixMap(subQuery);
+            if (prefixMap.isEmpty()) {
+                //no values found
+                logger.info("No values found for {}", query);
+            } else {
+                int size = prefixMap.size();
+                if (size == 1) {
+                    logger.info("Found value: {}", prefixMap.firstKey());
+                    return prefixMap.firstKey();
+                } else {
+                    printPrefixMap(prefixMap);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void printPrefixMap(SortedMap<String, String> prefixMap) {
+        System.out.println("-------");
+        for (Map.Entry<String, String> entry : prefixMap.entrySet()) {
+            System.out.println("Key: <" + entry.getKey() + ">, Value: <" + entry.getValue() + ">");
+        }
+        System.out.println("-------");
     }
 }

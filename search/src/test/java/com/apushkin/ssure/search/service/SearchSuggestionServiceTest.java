@@ -3,6 +3,7 @@ package com.apushkin.ssure.search.service;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.apushkin.ssure.search.model.ElasticStoreAddress;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,5 +186,10 @@ class SearchSuggestionServiceTest {
         assertNotNull(hits.get(0).source());
         String expected = "ppc - procare pharmacy care (mirama";
         assertEquals(expected, hits.get(0).source().getBusinessName().toLowerCase(Locale.ENGLISH));
+    }
+
+    @Test
+    void testTrie() {
+        searchSuggestionService.findSuggestion();
     }
 }
