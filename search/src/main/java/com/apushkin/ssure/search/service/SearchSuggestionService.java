@@ -248,11 +248,11 @@ public class SearchSuggestionService {
     }
 
     public String findSuggestion() {
-        Set<String> terms = new HashSet<>();
-        terms.add("express");
-        terms.add("script");
-
         Trie<String, String> trie = new PatriciaTrie<>();
+        trie.putAll(Map.of("expert", "expert", "expertsrx", "expertsrx", "expocar", "expocar",
+                "expreso", "expreso", "express", "express", "expresscar", "expresscar",
+                "expressm", "expressm", "expresso", "expresso", "expressrx", "expressrx",
+                "script", "script"));
         trie.put("exp", "exp");
         trie.put("expr", "expr");
         trie.put("expre", "expre");
@@ -261,9 +261,12 @@ public class SearchSuggestionService {
         trie.put("scrumble", "scrumble");
         trie.put("scripts", "scripts");
         SortedMap<String, String> prefixMap;
-        String query = "expresss";
-        for (int i = 3; i < query.length(); i++) {
-            String subQuery = query.substring(0, i);
+        String query = "expressscripts";
+        List<String> computedTerms = new ArrayList<>();
+        List<Integer> indexes = new ArrayList<>();
+        int currentIndex = 0;
+        for (int i = 3; i <= query.length(); i++) {
+            String subQuery = query.substring(currentIndex, i);
             prefixMap = trie.prefixMap(subQuery);
             if (prefixMap.isEmpty()) {
                 //no values found
@@ -272,13 +275,23 @@ public class SearchSuggestionService {
                 int size = prefixMap.size();
                 if (size == 1) {
                     logger.info("Found value: {}", prefixMap.firstKey());
-                    return prefixMap.firstKey();
+                    computedTerms.add(prefixMap.firstKey());
+                    currentIndex = i + 1; //starting search for a new term here - see subQuery
                 } else {
+                    logger.info("Printing found values for subquery {}", subQuery);
+                    String foundTerm = prefixMap.firstKey();
+                    if (foundTerm.equals(subQuery)) {
+                        logger.info("Found term {} and nextIndex is {}", foundTerm, i+1);
+                        computedTerms.add(foundTerm);
+                        currentIndex = i + 1;
+                    } else {
+                        logger.info("First term is {} for subQuery {}", foundTerm, subQuery);
+                    }
                     printPrefixMap(prefixMap);
                 }
             }
         }
-
+        System.out.println(computedTerms);
         return null;
     }
 
