@@ -6,6 +6,8 @@ import com.apushkin.ssure.search.model.ElasticStoreAddress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -27,6 +29,8 @@ class SearchSuggestionServiceTest {
 
     @Autowired
     SearchSuggestionService searchSuggestionService;
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
      * If there is a space separating # and store name it may cause problems but not in our search.
@@ -190,6 +194,8 @@ class SearchSuggestionServiceTest {
 
     @Test
     void testTrie() {
-        searchSuggestionService.findSuggestion();
+        List<String> candidates = searchSuggestionService
+                .findCandidates("expressrscripts");
+        logger.info("Found candidates: {}", candidates.toString());
     }
 }

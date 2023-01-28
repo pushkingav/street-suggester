@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,16 @@ public class SearchApiController {
                                @RequestParam(required = false) String state) throws IOException {
         log.info("Searching for: pharmaName: {}, address: {}, zip: {}, city: {}, state: {}", pharmaName, address, zip,
                 city, state);
+        if (!pharmaName.isBlank() && pharmaName.length() > 10 && !pharmaName.contains(" ")) {
+            List<String> candidates = searchSuggestionService.findCandidates(pharmaName);
+            if (candidates.isEmpty()) {
+                List<String> empty = new ArrayList<>();
+                empty.add("Nothing found...");
+                return empty;
+            }
+            candidates.add(0, "Did you mean something like:");
+            return candidates;
+        }
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
                 .searchMultipleFields(pharmaName, address, zip, city, state, true);
         if (response.hits().hits().size() == 0) {

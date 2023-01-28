@@ -13,9 +13,14 @@ import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -28,9 +33,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class SearchSuggestionService {
     private static final Logger logger = LoggerFactory.getLogger(SearchSuggestionService.class);
     private final ElasticsearchClient client;
+    private Trie<String, String> trie;
 
     public SearchSuggestionService(ElasticsearchClient client) {
         this.client = client;
+    }
+
+    @PostConstruct
+    public void init() {
+        this.trie = buidTrie();
     }
 
     public List<TermSuggestOption> searchWithSuggestion(String searchTerm) throws IOException {
@@ -106,8 +117,16 @@ public class SearchSuggestionService {
         return convertResponse(response);
     }
 
+    public List<String> analyzeInput(String query) {
+        if (query.length() > 10) {
+            return findCandidates(query);
+        }
+        return Collections.emptyList();
+    }
+
     public SearchResponse<ElasticStoreAddress> searchMultipleFields(String pharmaName, String address, String zip,
-                                                                    String city, String state, boolean isPhrase) throws IOException {
+                                                                    String city, String state, boolean isPhrase)
+            throws IOException {
         List<Query> queries = buildQueries(pharmaName, address, zip, city, state, isPhrase);
         BoolQuery.Builder builder = QueryBuilders.bool().must(queries);
         SearchResponse<ElasticStoreAddress> response = client.search(s -> s
@@ -247,52 +266,54 @@ public class SearchSuggestionService {
         return new ArrayList<>(terms);
     }
 
-    public String findSuggestion() {
+    public Trie<String, String> buidTrie() {
         Trie<String, String> trie = new PatriciaTrie<>();
-        trie.putAll(Map.of("expert", "expert", "expertsrx", "expertsrx", "expocar", "expocar",
-                "expreso", "expreso", "express", "express", "expresscar", "expresscar",
-                "expressm", "expressm", "expresso", "expresso", "expressrx", "expressrx",
-                "script", "script"));
-        trie.put("exp", "exp");
-        trie.put("expr", "expr");
-        trie.put("expre", "expre");
-        trie.put("express", "express");
-        trie.put("script", "script");
-        trie.put("scrumble", "scrumble");
-        trie.put("scripts", "scripts");
-        SortedMap<String, String> prefixMap;
-        String query = "expressscripts";
-        List<String> computedTerms = new ArrayList<>();
-        List<Integer> indexes = new ArrayList<>();
-        int currentIndex = 0;
-        for (int i = 3; i <= query.length(); i++) {
-            String subQuery = query.substring(currentIndex, i);
-            prefixMap = trie.prefixMap(subQuery);
-            if (prefixMap.isEmpty()) {
-                //no values found
-                logger.info("No values found for {}", query);
-            } else {
-                int size = prefixMap.size();
-                if (size == 1) {
-                    logger.info("Found value: {}", prefixMap.firstKey());
-                    computedTerms.add(prefixMap.firstKey());
-                    currentIndex = i + 1; //starting search for a new term here - see subQuery
-                } else {
-                    logger.info("Printing found values for subquery {}", subQuery);
-                    String foundTerm = prefixMap.firstKey();
-                    if (foundTerm.equals(subQuery)) {
-                        logger.info("Found term {} and nextIndex is {}", foundTerm, i+1);
-                        computedTerms.add(foundTerm);
-                        currentIndex = i + 1;
-                    } else {
-                        logger.info("First term is {} for subQuery {}", foundTerm, subQuery);
-                    }
-                    printPrefixMap(prefixMap);
+        InputStream txtFileResource;
+        try {
+            txtFileResource = new ClassPathResource("terms.txt").getInputStream();
+        } catch (IOException e) {
+            logger.error("Cannot read terms file.", e);
+            throw new RuntimeException(e);
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(txtFileResource))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.substring(0, line.length() - 1); //get rid of finishing comma
+                if (StringUtils.isNumeric(line)) {
+                    continue; //we do not take into account terms that consist of numbers only
                 }
+                trie.put(line, line); //yes, key and value are equal
+            }
+        } catch (IOException e) {
+            logger.error("Error while parsing terms file.", e);
+            throw new RuntimeException(e);
+        }
+        logger.info("Built prefix tree of size {}", trie.size());
+        return trie;
+    }
+
+    public List<String> findCandidates(String searchStr) {
+        int lastIndex = 0; //index of the last char in searchStr that produces terms
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < searchStr.length(); i++) {
+            lastIndex = i;
+            String subQuery = searchStr.substring(0, i);
+            SortedMap<String, String> prefixMap = trie.prefixMap(subQuery);
+            if (prefixMap.isEmpty()) {
+                //finish, candidates not found
+                result.add(searchStr.substring(0, lastIndex - 1));
+                break;
+            }
+            if (i == searchStr.length() - 1) { //if we reach the end of searchStr -> this is a candidate also...
+                result.add(searchStr);
             }
         }
-        System.out.println(computedTerms);
-        return null;
+        if (lastIndex + 1 < searchStr.length()) {
+            List<String> restCandidates = findCandidates(searchStr.substring(--lastIndex));
+            result.addAll(restCandidates);
+        }
+        logger.info("Found {} candidates", result.size());
+        return result;
     }
 
     private void printPrefixMap(SortedMap<String, String> prefixMap) {
