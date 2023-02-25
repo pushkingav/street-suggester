@@ -35,15 +35,24 @@ public class SearchApiController {
                                @RequestParam(required = false) String state) throws IOException {
         log.info("Searching for: pharmaName: {}, address: {}, zip: {}, city: {}, state: {}", pharmaName, address, zip,
                 city, state);
-        if (!pharmaName.isBlank() && pharmaName.length() > 10 && !pharmaName.contains(" ")) {
-            List<String> candidates = searchSuggestionService.findCandidates(pharmaName);
+        List<String> terms = searchSuggestionService.findTerms(pharmaName);
+        if (!terms.isEmpty()) {
+            List<String> candidates = new ArrayList<>();
+            for (String term : terms) {
+                if (!term.contains("-") && term.length() > 10) {
+                    candidates.addAll(searchSuggestionService.findCandidates(term));
+                } else {
+                    candidates.add(term);
+                }
+            }
             if (candidates.isEmpty()) {
                 List<String> empty = new ArrayList<>();
                 empty.add("Nothing found...");
                 return empty;
+            } else {
+                pharmaName = String.join(" ", candidates);
+                log.info("Computed pharmacy name is {}", pharmaName);
             }
-            candidates.add(0, "Did you mean something like:");
-            return candidates;
         }
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
                 .searchMultipleFields(pharmaName, address, zip, city, state, true);

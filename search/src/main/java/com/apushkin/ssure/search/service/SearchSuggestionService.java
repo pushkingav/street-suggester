@@ -117,11 +117,10 @@ public class SearchSuggestionService {
         return convertResponse(response);
     }
 
-    public List<String> analyzeInput(String query) {
-        if (query.length() > 10) {
-            return findCandidates(query);
-        }
-        return Collections.emptyList();
+    public List<String> findTerms(String inputQuery) {
+        String query = inputQuery.trim().toLowerCase(Locale.US);
+        String[] parts = query.split(" ");
+        return Arrays.asList(parts);
     }
 
     public SearchResponse<ElasticStoreAddress> searchMultipleFields(String pharmaName, String address, String zip,
@@ -311,6 +310,7 @@ public class SearchSuggestionService {
         if (lastIndex + 1 < searchStr.length()) {
             List<String> restCandidates = findCandidates(searchStr.substring(--lastIndex));
             result.addAll(restCandidates);
+            logger.debug("Candidates: {}", restCandidates);
         }
         logger.info("Found {} candidates", result.size());
         return result;
