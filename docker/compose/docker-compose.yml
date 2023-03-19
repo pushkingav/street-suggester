@@ -11,3 +11,15 @@ services:
     volumes:
       - ./ap-es/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     stop_grace_period: 5m
+  search:
+    build:
+      context: .
+      dockerfile: ./search/Dockerfile
+    depends_on:
+      - ap-es
+  ingest:
+    build:
+      context: .
+      dockerfile: ./ingest/Dockerfile
+    depends_on:
+      - ap-es
