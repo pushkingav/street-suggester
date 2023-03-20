@@ -15,6 +15,8 @@ services:
     build:
       context: .
       dockerfile: ./search/Dockerfile
+    ports:
+      - "8080:8081"
     depends_on:
       - ap-es
   ingest:
