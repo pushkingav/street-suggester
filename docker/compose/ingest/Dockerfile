@@ -1,5 +1,10 @@
 FROM openjdk:17
 MAINTAINER av.pushking@gmail.com
-COPY ./ingest/*.jar /ingest.jar
-COPY ../application.properties /config/application.properties
-ENTRYPOINT ["java","-jar","/ingest.jar"]
+
+RUN mkdir /app && mkdir /app/config && mkdir /app/csv
+
+COPY ./ingest/*.jar /app/ingest.jar
+COPY ../application.properties /app/config/application.properties
+WORKDIR /app
+
+ENTRYPOINT ["java","-Dspring.config.location=/app/config/application.properties","-jar","/app/ingest.jar"]
