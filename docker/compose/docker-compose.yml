@@ -12,6 +12,8 @@ services:
       - ./ap-es/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     stop_grace_period: 5m
   search:
+    profiles:
+      - main
     build:
       context: .
       dockerfile: ./search/Dockerfile
@@ -19,7 +21,19 @@ services:
       - "8080:8080"
     depends_on:
       - ap-es
+  frontend:
+    profiles:
+      - main
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    ports:
+      - "80:3000"
+    depends_on:
+      - search
   ingest:
+    profiles:
+      - ingest
     build:
       context: .
       dockerfile: ./ingest/Dockerfile

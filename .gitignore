@@ -35,3 +35,5 @@ yarn-error.log*
 
 /docker/compose/ingest/csv-parser-0.1.jar
 /docker/compose/search/search-0.1.jar
+/docker/compose/frontend/public/
+/docker/compose/frontend/src/
