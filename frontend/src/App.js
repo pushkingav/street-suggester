@@ -4,7 +4,6 @@ import SearchField from "./SearchForm/SearchField/SearchField";
 import SearchButton from "./SearchForm/SearchButton/SearchButton";
 
 const App = () => {
-    const [searchString, setSearchString] = useState("");
     const [results, setResults] = useState([]);
     const [suggestedResults, setSuggestedResults] = useState([]);
 
@@ -51,17 +50,9 @@ const App = () => {
         const request = searchDetails.join(`&`);
         console.log("Request = ", request);
 
-        const response = await fetch(`http://localhost:8080/search?${request}`);
+        const response = await fetch(`http://${process.env.REACT_APP_PUBLIC_IP}:8080/search?${request}`);
         const body = await response.json();
         setResults(body);
-        console.log(results);
-    };
-
-    const onSuggestClickHandler = async () => {
-        clearResults();
-        const response = await fetch(`http://localhost:8080/search/suggest?searchString=${searchString}`);
-        const body = await response.json();
-        setSuggestedResults(body);
         console.log(results);
     };
 
