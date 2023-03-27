@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin
 public class SearchApiController {
     private static final Logger log = LoggerFactory.getLogger(SearchApiController.class);
 
