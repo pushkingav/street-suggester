@@ -29,8 +29,8 @@ services:
       dockerfile: ./frontend/Dockerfile
     ports:
       - "80:3000"
-    environment:
-      - REACT_APP_PUBLIC_IP
+    env_file:
+      - frontend_env.env
     depends_on:
       - search
   ingest:
