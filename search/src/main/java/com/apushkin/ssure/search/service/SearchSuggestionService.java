@@ -112,12 +112,10 @@ public class SearchSuggestionService {
                                 .query(searchTerm)
                         )
                 ), ElasticStoreAddress.class);
-
-
-        return convertResponse(response);
+        return convertResponse(Collections.singletonList(response));
     }
 
-    public List<String> findTerms(String inputQuery) {
+    public List<String> splitBySpace(String inputQuery) {
         String query = inputQuery.trim().toLowerCase(Locale.US);
         String[] parts = query.split(" ");
         return Arrays.asList(parts);
@@ -130,7 +128,9 @@ public class SearchSuggestionService {
         BoolQuery.Builder builder = QueryBuilders.bool().must(queries);
         SearchResponse<ElasticStoreAddress> response = client.search(s -> s
                         .index("addresses")
-                        .query(builder.build()._toQuery()),
+                        .query(builder.build()._toQuery())
+                        .from(0)
+                        .size(25),
                 ElasticStoreAddress.class
         );
         return response;
@@ -190,21 +190,18 @@ public class SearchSuggestionService {
         return result._toQuery();
     }
 
-    public List<String> convertResponse(SearchResponse<ElasticStoreAddress> response) {
-        TotalHits total = response.hits().total();
-        boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
-
-        if (isExactResult) {
-            logger.info("There are " + total.value() + " results");
-        } else {
-            logger.info("There are more than " + total.value() + " results");
+    public List<String> convertResponse(List<SearchResponse<ElasticStoreAddress>> responseList) {
+        List<Hit<ElasticStoreAddress>> hits = new ArrayList<>();
+        for (SearchResponse<ElasticStoreAddress> response : responseList) {
+            hits.addAll(response.hits().hits());
+            for (Hit<ElasticStoreAddress> hit : hits) {
+                ElasticStoreAddress storeAddress = hit.source();
+                logger.debug("Found street storeAddress {} {} {} {}, score {} ", storeAddress.getPostalCode(),
+                        storeAddress.getBusinessName(), storeAddress.getAddressLine(), storeAddress.getCity(),
+                        hit.score());
+            }
         }
-        List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
-        for (Hit<ElasticStoreAddress> hit : hits) {
-            ElasticStoreAddress storeAddress = hit.source();
-            logger.info("Found street storeAddress {} {} {} {}, score {} ", storeAddress.getPostalCode(),
-                    storeAddress.getBusinessName(), storeAddress.getAddressLine(), storeAddress.getCity(), hit.score());
-        }
+        Collections.sort(hits, Comparator.comparingDouble(hit->((Hit<ElasticStoreAddress>)hit).score()).reversed());
         return hits
                 .stream()
                 .map(hit -> String.join("||", String.format("(%.2f)", hit.score()), hit.source().getPostalCode(),
@@ -256,7 +253,7 @@ public class SearchSuggestionService {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            termVectors.termVectors().get("businessName").terms().keySet().forEach(t -> terms.add(t));
+            terms.addAll(termVectors.termVectors().get("businessName").terms().keySet());
         });
         Set<String> termSet = new TreeSet<>(terms);
         List<String> sorted = termSet.stream().filter(term -> term.length() > 1).sorted().toList();
