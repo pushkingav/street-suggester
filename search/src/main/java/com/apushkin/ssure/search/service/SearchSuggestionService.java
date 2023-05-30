@@ -168,6 +168,7 @@ public class SearchSuggestionService {
                     .field(field.toString())
                     .query(query)
                     .fuzziness("AUTO:3,6")
+                    .prefixLength(1)
                     .analyzer("english"));
             default -> result = MatchQuery.of(m -> m
                     .field(field.toString())

@@ -59,19 +59,19 @@ public class SearchApiController {
                 log.info("Computed pharmacy name is {}", pharmaName);
             }
         }
+        List<String> result = new ArrayList<>();
         SearchResponse<ElasticStoreAddress> response = getResponse(pharmaName, address, zip, city, state);
-        List<String> convertedResponse = new ArrayList<>();
         //try to search for compound pharmaName
         SearchResponse<ElasticStoreAddress> response2 = null;
         if (terms.size() > 1) {
             response2 = getResponse(String.join("", terms), address, zip, city, state);
         }
         if (response2 != null) {
-            convertedResponse.addAll(searchSuggestionService.convertResponse(Arrays.asList(response, response2)));
+            result.addAll(searchSuggestionService.convertResponse(Arrays.asList(response, response2)));
         } else {
-            convertedResponse.addAll(searchSuggestionService.convertResponse(Collections.singletonList(response)));
+            result.addAll(searchSuggestionService.convertResponse(Collections.singletonList(response)));
         }
-        return convertedResponse;
+        return result;
     }
 
     private SearchResponse<ElasticStoreAddress> getResponse(String pharmaName, String address, String zip, String city,
