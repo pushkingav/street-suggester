@@ -167,6 +167,7 @@ public class SearchSuggestionService {
             case BUSINESS_NAME, ADDRESS, CITY -> result = MatchQuery.of(m -> m
                     .field(field.toString())
                     .query(query)
+                    .minimumShouldMatch("100%")
                     .fuzziness("AUTO:3,6")
                     .prefixLength(1)
                     .analyzer("english"));

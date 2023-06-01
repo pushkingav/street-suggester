@@ -45,6 +45,7 @@ public class SearchApiController {
             List<String> candidates = new ArrayList<>();
             for (String term : terms) {
                 if (!term.contains("-") && term.length() > 10) {
+                    log.info("Using prefix tree to compute candidates");
                     candidates.addAll(searchSuggestionService.findCandidates(term));
                 } else {
                     candidates.add(term);
@@ -55,6 +56,7 @@ public class SearchApiController {
                 empty.add("Nothing found...");
                 return empty;
             } else {
+                log.info("Found candidates: {}", candidates);
                 pharmaName = String.join(" ", candidates);
                 log.info("Computed pharmacy name is {}", pharmaName);
             }
