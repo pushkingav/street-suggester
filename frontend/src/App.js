@@ -2,6 +2,7 @@ import './App.css';
 import {useState} from "react";
 import SearchField from "./SearchForm/SearchField/SearchField";
 import SearchButton from "./SearchForm/SearchButton/SearchButton";
+import {FormGroup, Switch} from "@blueprintjs/core";
 
 const App = () => {
     const [results, setResults] = useState([]);
@@ -12,6 +13,7 @@ const App = () => {
     const [zip, setZip] = useState("");
     const [city, setCity] = useState("");
     const [state, setState] = useState("");
+    const [strict, setStrict] = useState(true);
 
     const pharmaNameChangeHandler = (value) => {
         setPharmaName(value);
@@ -35,7 +37,7 @@ const App = () => {
 
     const onKeyDownHandler = async (e) => {
         if (e.keyCode === 13) {
-           await onSearchClickHandler();
+            await onSearchClickHandler();
         }
     };
 
@@ -50,11 +52,15 @@ const App = () => {
         const request = searchDetails.join(`&`);
         console.log("Request = ", request);
 
-        const response = await fetch(`http://${process.env.REACT_APP_PUBLIC_IP}:8080/search?${request}`);
+        const response = await fetch(`http://${process.env.REACT_APP_PUBLIC_IP}:8080/search?${request}&strict=${strict}`);
         const body = await response.json();
         setResults(body);
         console.log(results);
     };
+
+    const onStrictSwitchHandler = () => {
+        setStrict(!strict);
+    }
 
     const clearResults = () => {
         setResults([]);
@@ -101,6 +107,9 @@ const App = () => {
                         onKeyDownHandler={onKeyDownHandler}
                     />
                     <SearchButton icon="search" label="Search!" onClick={onSearchClickHandler}/>
+                    <FormGroup label="Strict">
+                        <Switch checked={strict} onClick={onStrictSwitchHandler}/>
+                    </FormGroup>
                     <SearchButton icon="reset" label="Clear" onClick={clearResults}/>
                 </div>
             </header>

@@ -40,7 +40,7 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"Costco Pharmacy # 462", "Costco Pharmacy #462", "Costco Pharmacy 462"})
     void searchForPharmacyContainingHashSign(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         assertNotNull(hits.get(0).source());
@@ -56,7 +56,7 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"CVS 17021 In Target"})
     void searchForPharmacyThatIsNotPharmacyNameLikeMost(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         assertNotNull(hits.get(0).source());
@@ -71,7 +71,7 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"CVS/Pharmacy #2340", "CVS Pharmacy #2340"})
     void searchForPharmacyContainingSlash(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         assertNotNull(hits.get(0).source());
@@ -86,7 +86,7 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"Ralph's Pharmacy INC", "Ralphs Pharmacy INC", "Ralph Pharmacy INC"})
     void searchForPharmacyContainingApostrophe(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         assertNotNull(hits.get(0).source());
@@ -101,7 +101,7 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"Walgreens Drugstore #19882", "Walgreen's Drugstore #19882", "Walgreen Drugstore #19882"})
     void searchWithUnexpectedApostrophe(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         assertNotNull(hits.get(0).source());
@@ -116,12 +116,12 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"Express Rx of Paris", "Expressrx of Paris"})
     void searchTogether(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         if (hits.size() == 0) {
             response = searchSuggestionService
-                    .searchMultipleFields(input, "", "", "", "", false);
+                    .searchMultipleFields(input, "", "", "", "", false, false);
         }
         hits = response.hits().hits();
         assertNotNull(hits.get(0).source());
@@ -136,12 +136,12 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"EXPRESS SCRIPTS HOME DELIVERY", "EXPRESS-SCRIPTS HOME DELIVERY", "EXPRESSSCRIPTS HOME DELIVERY"})
     void searchTogetherOrWithDash(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         if (hits.size() == 0) {
             response = searchSuggestionService
-                    .searchMultipleFields(input, "", "", "", "", false);
+                    .searchMultipleFields(input, "", "", "", "", false, false);
         }
         hits = response.hits().hits();
         assertNotNull(hits.get(0).source());
@@ -157,12 +157,12 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"Claremore compounding center", "Claremore pharmacy", "Clare More pharmacy"})
     void searchWithUnexpectedTerm(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         if (hits.size() == 0) {
             response = searchSuggestionService
-                    .searchMultipleFields(input, "", "", "", "", false);
+                    .searchMultipleFields(input, "", "", "", "", false, false);
         }
         hits = response.hits().hits();
         assertNotNull(hits.get(0).source());
@@ -179,12 +179,12 @@ class SearchSuggestionServiceTest {
     @ValueSource(strings = {"PPC - ProCare Pharmacy", "PPC - procare Pharmacy", "PPC - Pro Care Pharmacy"})
     void searchWithSpace(String input) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(input, "", "", "", "", true);
+                .searchMultipleFields(input, "", "", "", "", true, false);
         assertNotNull(response);
         List<Hit<ElasticStoreAddress>> hits = response.hits().hits();
         if (hits.size() == 0) {
             response = searchSuggestionService
-                    .searchMultipleFields(input, "", "", "", "", false);
+                    .searchMultipleFields(input, "", "", "", "", false, false);
         }
         hits = response.hits().hits();
         assertNotNull(hits.get(0).source());

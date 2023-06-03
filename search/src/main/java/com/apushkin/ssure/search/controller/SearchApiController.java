@@ -35,9 +35,10 @@ public class SearchApiController {
                                @RequestParam(required = false) String address,
                                @RequestParam(required = false) String zip,
                                @RequestParam(required = false) String city,
-                               @RequestParam(required = false) String state) throws IOException {
-        log.info("Searching for: pharmaName: {}, address: {}, zip: {}, city: {}, state: {}", pharmaName, address, zip,
-                city, state);
+                               @RequestParam(required = false) String state,
+                               @RequestParam boolean strict) throws IOException {
+        log.info("Searching for: pharmaName: {}, address: {}, zip: {}, city: {}, state: {}, strict: {}", pharmaName, address, zip,
+                city, state, strict);
         List<String> terms = StringUtils.isBlank(pharmaName)
                 ? Collections.emptyList()
                 : searchSuggestionService.splitBySpace(pharmaName);
@@ -62,11 +63,11 @@ public class SearchApiController {
             }
         }
         List<String> result = new ArrayList<>();
-        SearchResponse<ElasticStoreAddress> response = getResponse(pharmaName, address, zip, city, state);
+        SearchResponse<ElasticStoreAddress> response = getResponse(pharmaName, address, zip, city, state, strict);
         //try to search for compound pharmaName
         SearchResponse<ElasticStoreAddress> response2 = null;
         if (terms.size() > 1) {
-            response2 = getResponse(String.join("", terms), address, zip, city, state);
+            response2 = getResponse(String.join("", terms), address, zip, city, state, strict);
         }
         if (response2 != null) {
             result.addAll(searchSuggestionService.convertResponse(Arrays.asList(response, response2)));
@@ -77,12 +78,12 @@ public class SearchApiController {
     }
 
     private SearchResponse<ElasticStoreAddress> getResponse(String pharmaName, String address, String zip, String city,
-                                                            String state) throws IOException {
+                                                            String state, boolean strict) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
-                .searchMultipleFields(pharmaName, address, zip, city, state, true);
+                .searchMultipleFields(pharmaName, address, zip, city, state, true, strict);
         if (response.hits().hits().size() == 0) {
             response = searchSuggestionService
-                    .searchMultipleFields(pharmaName, address, zip, city, state, false);
+                    .searchMultipleFields(pharmaName, address, zip, city, state, false, strict);
         }
         return response;
     }

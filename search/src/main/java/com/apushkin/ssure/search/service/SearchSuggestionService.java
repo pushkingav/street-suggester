@@ -122,9 +122,10 @@ public class SearchSuggestionService {
     }
 
     public SearchResponse<ElasticStoreAddress> searchMultipleFields(String pharmaName, String address, String zip,
-                                                                    String city, String state, boolean isPhrase)
+                                                                    String city, String state, boolean isPhrase,
+                                                                    boolean strict)
             throws IOException {
-        List<Query> queries = buildQueries(pharmaName, address, zip, city, state, isPhrase);
+        List<Query> queries = buildQueries(pharmaName, address, zip, city, state, isPhrase, strict);
         BoolQuery.Builder builder = QueryBuilders.bool().must(queries);
         SearchResponse<ElasticStoreAddress> response = client.search(s -> s
                         .index("addresses")
@@ -137,37 +138,37 @@ public class SearchSuggestionService {
     }
 
     private List<Query> buildQueries(String pharmaName, String address, String zip, String city, String state,
-                                     boolean isPhrase) {
+                                     boolean isPhrase, boolean strict) {
         List<Query> queries = new ArrayList<>();
         if (!StringUtils.isBlank(pharmaName)) {
             if (isPhrase) {
                 queries.add(createMatchPhraseQuery(SearchField.BUSINESS_NAME, pharmaName));
             } else {
-                queries.add(createMatchQuery(SearchField.BUSINESS_NAME, pharmaName));
+                queries.add(createMatchQuery(SearchField.BUSINESS_NAME, pharmaName, strict));
             }
         }
         if (!StringUtils.isBlank(address)) {
-            queries.add(createMatchQuery(SearchField.ADDRESS, address));
+            queries.add(createMatchQuery(SearchField.ADDRESS, address, strict));
         }
         if (!StringUtils.isBlank(city)) {
-            queries.add(createMatchQuery(SearchField.CITY, city));
+            queries.add(createMatchQuery(SearchField.CITY, city, strict));
         }
         if (!StringUtils.isBlank(state)) {
-            queries.add(createMatchQuery(SearchField.STATE, state));
+            queries.add(createMatchQuery(SearchField.STATE, state, strict));
         }
         if (!StringUtils.isBlank(zip)) {
-            queries.add(createMatchQuery(SearchField.ZIP, zip));
+            queries.add(createMatchQuery(SearchField.ZIP, zip, strict));
         }
         return queries;
     }
 
-    private Query createMatchQuery(SearchField field, String query) {
+    private Query createMatchQuery(SearchField field, String query, boolean strict) {
         MatchQuery result;
         switch (field) {
             case BUSINESS_NAME, ADDRESS, CITY -> result = MatchQuery.of(m -> m
                     .field(field.toString())
                     .query(query)
-                    .minimumShouldMatch("100%")
+                    .minimumShouldMatch(strict ? "100%" : "10%")
                     .fuzziness("AUTO:3,6")
                     .prefixLength(1)
                     .analyzer("english"));
