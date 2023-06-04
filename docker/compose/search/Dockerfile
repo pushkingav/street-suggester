@@ -3,7 +3,7 @@ MAINTAINER av.pushking@gmail.com
 
 RUN mkdir /app && mkdir /app/config
 
-COPY ./search/search-0.1.jar /app/search.jar
+COPY ./search/search*.jar /app/search.jar
 COPY ../application.properties /app/config/application.properties
 WORKDIR /app
 
