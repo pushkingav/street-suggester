@@ -81,7 +81,7 @@ public class SearchApiController {
                                                             String state, boolean strict) throws IOException {
         SearchResponse<ElasticStoreAddress> response = searchSuggestionService
                 .searchMultipleFields(pharmaName, address, zip, city, state, true, strict);
-        if (response.hits().hits().size() == 0) {
+        if (response.hits().hits().size() == 0 || !strict) {
             response = searchSuggestionService
                     .searchMultipleFields(pharmaName, address, zip, city, state, false, strict);
         }

@@ -163,20 +163,31 @@ public class SearchSuggestionService {
     }
 
     private Query createMatchQuery(SearchField field, String query, boolean strict) {
-        MatchQuery result;
+        Query result;
         switch (field) {
-            case BUSINESS_NAME, ADDRESS, CITY -> result = MatchQuery.of(m -> m
+            case BUSINESS_NAME, CITY -> result = MatchQuery.of(m -> {
+                MatchQuery.Builder builder = m
+                        .field(field.toString())
+                        .query(query)
+                        .fuzziness("AUTO:3,6")
+                        .prefixLength(1)
+                        .analyzer("english");
+                if (strict) {
+                    builder.minimumShouldMatch("100%");
+                }
+                return builder;
+            })._toQuery();
+            case ADDRESS -> result = RegexpQuery.of(m -> m
                     .field(field.toString())
-                    .query(query)
-                    .minimumShouldMatch(strict ? "100%" : "10%")
-                    .fuzziness("AUTO:3,6")
-                    .prefixLength(1)
-                    .analyzer("english"));
+                    .value("h.*")
+//                    .maxExpansions(100)
+//                    .prefixLength(1)
+                    /*.analyzer("english")*/)._toQuery();
             default -> result = MatchQuery.of(m -> m
                     .field(field.toString())
-                    .query(query));
+                    .query(query))._toQuery();
         }
-        return result._toQuery();
+        return result;
     }
 
     private Query createMatchPhraseQuery(SearchField field, String query) {

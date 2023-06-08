@@ -33,7 +33,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-/docker/compose/ingest/csv-parser-0.1.jar
-/docker/compose/search/search-0.1.jar
+/docker/compose/ingest/csv-parser*.jar
+/docker/compose/search/search*.jar
 /docker/compose/frontend/public/
 /docker/compose/frontend/src/
