@@ -33,10 +33,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class SearchSuggestionService {
     private static final Logger logger = LoggerFactory.getLogger(SearchSuggestionService.class);
     private final ElasticsearchClient client;
+    private final UserInputAnalyzer userInputAnalyzer;
     private Trie<String, String> trie;
 
-    public SearchSuggestionService(ElasticsearchClient client) {
+    public SearchSuggestionService(ElasticsearchClient client, UserInputAnalyzer userInputAnalyzer) {
         this.client = client;
+        this.userInputAnalyzer = userInputAnalyzer;
     }
 
     @PostConstruct
@@ -148,7 +150,13 @@ public class SearchSuggestionService {
             }
         }
         if (!StringUtils.isBlank(address)) {
-            queries.add(createMatchQuery(SearchField.ADDRESS, address, strict));
+            List<String> regexpStrings = userInputAnalyzer.convertAddressToRegexp(address, strict);
+            List<Query> regexQueries = new ArrayList<>();
+            for (String regexpStr : regexpStrings) {
+                regexQueries.add(createMatchQuery(SearchField.ADDRESS, regexpStr, strict));
+            }
+            BoolQuery.Builder builder = QueryBuilders.bool().must(regexQueries);
+            queries.add(builder.build()._toQuery());
         }
         if (!StringUtils.isBlank(city)) {
             queries.add(createMatchQuery(SearchField.CITY, city, strict));
@@ -179,10 +187,8 @@ public class SearchSuggestionService {
             })._toQuery();
             case ADDRESS -> result = RegexpQuery.of(m -> m
                     .field(field.toString())
-                    .value("h.*")
-//                    .maxExpansions(100)
-//                    .prefixLength(1)
-                    /*.analyzer("english")*/)._toQuery();
+                    .value(query)
+                    .caseInsensitive(true))._toQuery();
             default -> result = MatchQuery.of(m -> m
                     .field(field.toString())
                     .query(query))._toQuery();
@@ -215,7 +221,7 @@ public class SearchSuggestionService {
                         hit.score());
             }
         }
-        Collections.sort(hits, Comparator.comparingDouble(hit->((Hit<ElasticStoreAddress>)hit).score()).reversed());
+        Collections.sort(hits, Comparator.comparingDouble(hit -> ((Hit<ElasticStoreAddress>) hit).score()).reversed());
         return hits
                 .stream()
                 .map(hit -> String.join("||", String.format("(%.2f)", hit.score()), hit.source().getPostalCode(),
