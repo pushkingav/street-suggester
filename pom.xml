@@ -22,6 +22,7 @@
         <module>csv-parser</module>
         <module>search</module>
         <module>csv-parser-lambda</module>
+        <module>csv-parser-cloud-function</module>
     </modules>
     <build>
         <plugins>

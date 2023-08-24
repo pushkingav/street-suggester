@@ -37,3 +37,5 @@ yarn-error.log*
 /docker/compose/search/search*.jar
 /docker/compose/frontend/public/
 /docker/compose/frontend/src/
+/csv-parser-lambda/out.yml
+/csv-parser-cloud-function/out.yml
