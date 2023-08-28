@@ -1,15 +1,10 @@
 version: 0.2
 
-env:
-  JAVA_HOME: "/usr/lib/jvm/java-17-amazon-corretto.x86_64/"
 phases:
   install:
     commands:
       - echo "Before install:"
       - echo $(java -version)
-      - yum -y install java-17-amazon-corretto
-      - update-alternatives --auto javac
-      - update-alternatives --auto java
       - echo "After install:"
       - echo $(java -version)
   pre_build:
